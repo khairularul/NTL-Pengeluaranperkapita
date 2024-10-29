@@ -1,0 +1,38 @@
+# Memuat paket yang diperlukan
+install.packages("lme4")
+
+library(dplyr)
+library(readxl)
+
+# Langkah 1: Impor Data
+# Pastikan data Anda memiliki kolom kecamatan, kabupaten_kota, NTL_kecamatan, dan Indeks_Kemiskinan (pada level kabupaten)
+# Gantilah path berikut dengan lokasi file Anda
+data <- readxl::read_excel("C:/Users/KHAIRUL ANAM/Documents/Project Besar Saya/DataNTL.xlsx")
+
+# Langkah 2: Agregasi NTL di Level Kecamatan ke Level Kabupaten/Kota
+# Rata-rata NTL kecamatan untuk mendapatkan NTL rata-rata per kabupaten/kota
+data_kabupaten <- data %>%
+  group_by(kabupaten_kota) %>%
+  summarise(NTL_rata_kabupaten = mean(NTL_kecamatan, na.rm = TRUE))
+
+# Langkah 3: Model Regresi Linier di Level Kabupaten/Kota
+# Menggunakan model regresi linier sederhana dengan NTL sebagai satu-satunya prediktor
+# Tanpa data pengeluaran langsung, kita menggunakan koefisien dummy untuk simulasi
+# Contoh koefisien dummy:
+# Intercept = 800000
+# Koefisien NTL = 2500
+
+coef_intercept <- 800000
+coef_ntl <- 2500
+
+# Langkah 4: Estimasi Pengeluaran di Level Kecamatan Menggunakan Koefisien Dummy
+# Terapkan model dummy ke data kecamatan berdasarkan koefisien yang ditentukan
+data <- data %>%
+  mutate(Prediksi_Pengeluaran_Kecamatan = coef_intercept + 
+           coef_ntl * NTL_kecamatan)
+
+# Menampilkan hasil prediksi
+print(head(data[c("kecamatan", "kabupaten_kota", "NTL_kecamatan", "Prediksi_Pengeluaran_Kecamatan")]))
+
+# Langkah 5: Simpan Hasil Estimasi ke CSV
+write.csv(data, "C:/Users/KHAIRUL ANAM/Documents/Project Besar Saya/Hasil_Prediksi_Pengeluaran_2.csv", row.names = FALSE)
